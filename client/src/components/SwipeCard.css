@@ -1,180 +1,106 @@
 .swipe-card {
   position: absolute;
-  width: 90%;
-  max-width: 400px;
-  height: 450px;
-  background: #1a1a2e;
-  border-radius: 20px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-  border: 1px solid #333;
+  width: 360px;
+  height: 520px;
+  border-radius: 24px;
   overflow: hidden;
-  transition: transform 0.3s ease-out, opacity 0.3s;
+  background: #111;
   cursor: grab;
+  touch-action: none; /* CRITICAL */
   user-select: none;
-  touch-action: none;
-}
-
-.swipe-card.active {
-  cursor: grabbing;
-}
-
-.swipe-card.leaving {
-  transition: transform 0.3s ease-out, opacity 0.3s;
 }
 
 .swipe-card:active {
   cursor: grabbing;
 }
 
+/* EDGE COLOR WASHES */
+.swipe-card::before,
+.swipe-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.swipe-card::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(255, 0, 0, 0.45), transparent);
+}
+
+.swipe-card::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(0, 255, 0, 0.45), transparent);
+}
+
+.swipe-card.left::before {
+  opacity: var(--wash);
+}
+
+.swipe-card.right::after {
+  opacity: var(--wash);
+}
+
+/* IMAGE */
+.card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* HEADER */
 .card-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-  position: relative;
-  height: 80px;
+  position: absolute;
+  top: 16px;
+  width: 100%;
   display: flex;
-  align-items: center;
   justify-content: center;
+  z-index: 3;
 }
 
 .compatibility-badge {
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.65);
+  padding: 8px 14px;
+  border-radius: 16px;
   color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: 600;
   font-size: 14px;
-  display: inline-block;
-}
-
-.card-content {
-  padding: 25px;
-  height: calc(100% - 80px);
-  overflow-y: auto;
-}
-
-.card-content h2 {
-  font-size: 28px;
-  color: #e0e0e0;
-  margin-bottom: 10px;
-}
-
-.bio {
-  color: #b0b0b0;
-  margin-bottom: 15px;
-  line-height: 1.6;
-}
-
-.availability {
-  margin-bottom: 20px;
-}
-
-.availability-badge {
-  color: white;
-  padding: 6px 12px;
-  border-radius: 15px;
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-block;
-}
-
-.skills-section,
-.interests-section {
-  margin-top: 20px;
-}
-
-.skills-section h3,
-.interests-section h3 {
-  font-size: 16px;
-  color: #e0e0e0;
-  margin-bottom: 10px;
-  font-weight: 600;
-}
-
-.skills-list,
-.interests-list {
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
 }
 
-.skill-tag {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 6px 14px;
-  border-radius: 15px;
-  font-size: 13px;
-  font-weight: 500;
+/* TOOLTIP */
+.why {
+  position: relative;
+  cursor: help;
 }
 
-.interest-tag {
-  background: #2a2a3e;
-  color: #b0b0b0;
-  padding: 6px 14px;
-  border-radius: 15px;
-  font-size: 13px;
-  font-weight: 500;
-  border: 1px solid #333;
-}
-
-/* Swipe Overlays */
-.swipe-overlay {
+.tooltip {
+  display: none;
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  top: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #111;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.why:hover .tooltip {
+  display: block;
+}
+
+/* TEXT OVER IMAGE */
+.card-overlay {
+  position: absolute;
   bottom: 0;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.swipe-overlay.like-overlay {
-  background: rgba(76, 175, 80, 0.2);
-  border: 3px solid #4caf50;
-}
-
-.swipe-overlay.pass-overlay {
-  background: rgba(244, 67, 54, 0.2);
-  border: 3px solid #f44336;
-}
-
-.swipe-card.active .swipe-overlay.like-overlay,
-.swipe-card.active .swipe-overlay.pass-overlay {
-  opacity: 1;
-}
-
-.overlay-content {
-  font-size: 48px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 4px;
+  width: 100%;
+  padding: 24px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
   color: white;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  transform: rotate(-15deg);
 }
-
-.swipe-overlay.like-overlay .overlay-content {
-  color: #4caf50;
-}
-
-.swipe-overlay.pass-overlay .overlay-content {
-  color: #f44336;
-}
-
-/* Smooth transitions */
-.swipe-card {
-  will-change: transform;
-}
-
-.match-info {
-  margin-left: 6px;
-  cursor: pointer;
-  font-size: 14px;
-}
-

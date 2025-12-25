@@ -1,113 +1,86 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import './SwipeCard.css';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 function SwipeCard({ candidate, index, onLike, onPass }) {
-  const [isDragging, setIsDragging] = useState(false);
-  const [currentPos, setCurrentPos] = useState({ x: 0, y: 0 });
-  const [isLeaving, setIsLeaving] = useState(false);
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
 
-  const startPosRef = useRef({ x: 0, y: 0 });
-  const currentPosRef = useRef({ x: 0, y: 0 });
+  const startRef = useRef({ x: 0, y: 0 });
 
-  useEffect(() => {
-    currentPosRef.current = currentPos;
-  }, [currentPos]);
-
-  const getAvailabilityColor = (availability) => {
-    if (availability === 'High') return '#4caf50';
-    if (availability === 'Medium') return '#ff9800';
-    if (availability === 'Low') return '#f44336';
-    return '#666';
+  const onPointerDown = (e) => {
+    if (index !== 0) return;
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setDragging(true);
+    startRef.current = { x: e.clientX, y: e.clientY };
   };
 
-  if (index !== 0) {
-    return (
-      <div
-        className="swipe-card"
-        style={{
-          transform: `rotate(${index * 2}deg) scale(${1 - index * 0.05})`,
-          opacity: 1 - index * 0.3,
-          zIndex: 10 - index,
-        }}
-      >
-        <div className="card-header">
-          <div className="compatibility-badge">
-            {candidate.compatibility}% Match
-            {candidate.matchExplanation && (
-              <span className="match-info" title={candidate.matchExplanation}>
-                ✨
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const onPointerMove = (e) => {
+    if (!dragging || index !== 0) return;
 
-  const handleStart = (x, y) => {
-    setIsDragging(true);
-    startPosRef.current = { x, y };
-    setCurrentPos({ x: 0, y: 0 });
-  };
-
-  const handleMove = (x, y) => {
-    if (!isDragging) return;
-    setCurrentPos({
-      x: x - startPosRef.current.x,
-      y: y - startPosRef.current.y,
+    setPos({
+      x: e.clientX - startRef.current.x,
+      y: e.clientY - startRef.current.y,
     });
   };
 
-  const handleEnd = () => {
-    if (!isDragging) return;
-    const { x } = currentPosRef.current;
+  const onPointerUp = () => {
+    if (!dragging || index !== 0) return;
 
-    if (Math.abs(x) > 100) {
-      setIsLeaving(true);
-      setTimeout(() => (x > 0 ? onLike() : onPass()), 300);
-    } else {
-      setCurrentPos({ x: 0, y: 0 });
-    }
-    setIsDragging(false);
+    setDragging(false);
+
+    if (pos.x > 120) onLike();
+    else if (pos.x < -120) onPass();
+    else setPos({ x: 0, y: 0 });
   };
+
+  const wash = Math.min(Math.abs(pos.x) / 180, 1);
+  const direction = pos.x > 0 ? 'right' : pos.x < 0 ? 'left' : '';
 
   return (
     <div
-      className={`swipe-card active ${isLeaving ? 'leaving' : ''}`}
+      className={`swipe-card ${direction}`}
       style={{
-        transform: `translate(${currentPos.x}px, ${currentPos.y}px) rotate(${currentPos.x * 0.1}deg)`,
+        transform: `translate(${pos.x}px, ${pos.y}px) rotate(${pos.x * 0.08}deg)`,
+        boxShadow:
+          direction === 'right'
+            ? `0 0 40px rgba(0,255,0,${wash})`
+            : direction === 'left'
+            ? `0 0 40px rgba(255,0,0,${wash})`
+            : 'none',
+        '--wash': wash,
       }}
-      onMouseDown={(e) => handleStart(e.clientX, e.clientY)}
-      onMouseMove={(e) => handleMove(e.clientX, e.clientY)}
-      onMouseUp={handleEnd}
-      onTouchStart={(e) =>
-        handleStart(e.touches[0].clientX, e.touches[0].clientY)
-      }
-      onTouchMove={(e) =>
-        handleMove(e.touches[0].clientX, e.touches[0].clientY)
-      }
-      onTouchEnd={handleEnd}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
     >
       <div className="card-header">
         <div className="compatibility-badge">
-          {candidate.compatibility}% Match
+          {candidate.compatibility}% Match ✨
           {candidate.matchExplanation && (
-            <span className="match-info" title={candidate.matchExplanation}>
-              ✨
+            <span className="why">
+              Why?
+              <span className="tooltip">
+                {candidate.matchExplanation}
+              </span>
             </span>
           )}
         </div>
       </div>
 
-      <div className="card-content">
+      <img
+        className="card-image"
+        src={`${API_URL}${candidate.profileImage}`}
+        alt={candidate.fullName}
+        draggable={false}
+      />
+
+      <div className="card-overlay">
         <h2>{candidate.fullName}</h2>
-        {candidate.bio && <p className="bio">{candidate.bio}</p>}
-        <span
-          className="availability-badge"
-          style={{ backgroundColor: getAvailabilityColor(candidate.availability) }}
-        >
-          {candidate.availability} Availability
-        </span>
+        <p>{candidate.bio}</p>
       </div>
     </div>
   );

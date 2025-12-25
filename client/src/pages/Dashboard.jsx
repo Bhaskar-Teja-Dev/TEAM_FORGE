@@ -17,14 +17,11 @@ function Dashboard() {
 
   const loadCandidates = async () => {
     try {
-      console.log('Loading candidates...')
       setLoading(true)
-      const response = await matchingAPI.getCandidates()
-      console.log('Candidates response:', response.data)
-      setCandidates(response.data)
+      const res = await matchingAPI.getCandidates()
+      setCandidates(res.data)
       setCurrentIndex(0)
     } catch (err) {
-      console.error('Failed to load candidates:', err)
       setError('Failed to load candidates')
     } finally {
       setLoading(false)
@@ -35,28 +32,21 @@ function Dashboard() {
     if (currentIndex >= candidates.length) return
 
     const candidate = candidates[currentIndex]
-    console.log('Swiping on candidate:', candidate._id, action)
-    
+
     try {
-      const response = await matchingAPI.swipe(candidate._id, action)
-      console.log('Swipe response:', response)
-      
-      if (response.data.isMatch) {
+      const res = await matchingAPI.swipe(candidate._id, action)
+
+      if (res.data.isMatch) {
         setMatchNotification({
           name: candidate.fullName,
-          message: "It's a match! 🎉"
+          message: "It's a match! 🎉",
         })
-        setTimeout(() => setMatchNotification(null), 5000)
+        setTimeout(() => setMatchNotification(null), 4000)
       }
 
-      // Move to next candidate
       if (currentIndex < candidates.length - 1) {
-        setCurrentIndex(currentIndex + 1)
-        console.log('Incremented currentIndex to:', currentIndex + 1)
+        setCurrentIndex((i) => i + 1)
       } else {
-        // No more candidates, load new ones
-        console.log('Loading new candidates')
-        setLoading(true)
         loadCandidates()
       }
     } catch (err) {
@@ -64,16 +54,16 @@ function Dashboard() {
     }
   }
 
-  const handlePass = () => handleSwipe('pass')
   const handleLike = () => handleSwipe('like')
+  const handlePass = () => handleSwipe('pass')
 
   if (loading) {
     return (
       <>
         <Navbar />
         <div className="dashboard-loading">
-          <div className="spinner"></div>
-          <p>Finding your perfect teammates...</p>
+          <div className="spinner" />
+          <p>Finding teammates…</p>
         </div>
       </>
     )
@@ -85,7 +75,7 @@ function Dashboard() {
         <Navbar />
         <div className="dashboard-error">
           <p>{error}</p>
-          <button onClick={loadCandidates}>Try Again</button>
+          <button onClick={loadCandidates}>Retry</button>
         </div>
       </>
     )
@@ -96,15 +86,12 @@ function Dashboard() {
       <>
         <Navbar />
         <div className="dashboard-empty">
-          <h2>No more candidates!</h2>
-          <p>Check back later for new matches.</p>
+          <h2>No more candidates</h2>
           <button onClick={loadCandidates}>Refresh</button>
         </div>
       </>
     )
   }
-
-  const currentCandidate = candidates[currentIndex]
 
   return (
     <>
@@ -117,32 +104,23 @@ function Dashboard() {
 
         {matchNotification && (
           <div className="match-notification">
-            <div className="match-content">
-              <h2>{matchNotification.message}</h2>
-              <p>You and {matchNotification.name} liked each other!</p>
-            </div>
+            <h2>{matchNotification.message}</h2>
+            <p>You and {matchNotification.name} liked each other</p>
           </div>
         )}
 
         <div className="swipe-container">
-          {candidates.slice(currentIndex, currentIndex + 3).map((candidate, idx) => (
-            <SwipeCard
-              key={candidate._id}
-              candidate={candidate}
-              index={idx}
-              onLike={handleLike}
-              onPass={handlePass}
-            />
-          ))}
-        </div>
-
-        <div className="swipe-actions">
-          <button className="swipe-button pass" onClick={handlePass}>
-            ✕ Pass
-          </button>
-          <button className="swipe-button like" onClick={handleLike}>
-            ♥ Like
-          </button>
+          {candidates
+            .slice(currentIndex, currentIndex + 3)
+            .map((candidate, idx) => (
+              <SwipeCard
+                key={candidate._id}
+                candidate={candidate}
+                index={idx}
+                onLike={handleLike}
+                onPass={handlePass}
+              />
+            ))}
         </div>
       </div>
     </>
@@ -150,4 +128,3 @@ function Dashboard() {
 }
 
 export default Dashboard
-

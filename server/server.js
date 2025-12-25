@@ -13,6 +13,7 @@ dotenv.config();
 connectDB();
 
 const app = express();
+const path = require('path');
 
 // Middleware
 app.use(express.json()); // Body parser
@@ -23,6 +24,10 @@ app.use('/api/ai', require('./routes/ai'));
 app.use('/api/matches', require('./routes/matching'));
 app.use('/api/chat', require('./routes/chat'));
 
+app.use(
+	'/profiles',
+	express.static(path.join(__dirname, 'Profiles'))
+);
 
 // Basic Route
 app.get('/', (req, res) => {
