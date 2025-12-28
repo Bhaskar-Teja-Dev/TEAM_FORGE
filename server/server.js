@@ -23,7 +23,6 @@ app.use('/api/user', require('./routes/user'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/matches', require('./routes/matching'));
 app.use('/api/profile', require('./routes/profile'));
-app.use('/uploads', express.static('uploads'));
 app.use('/api/chat', require('./routes/chat'));
 
 app.use(
