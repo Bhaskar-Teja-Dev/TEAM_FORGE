@@ -1,0 +1,160 @@
+.chat-container {
+  display: flex;
+  height: calc(100vh - 64px);
+  background: #f4f6f8;
+}
+
+.chat-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.conversation {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.conversation-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.chat-sidebar {
+  width: 320px;
+  background: #fff;
+  border-right: 1px solid #e0e0e0;
+  overflow-y: auto;
+}
+
+.chat-sidebar h2 {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.conversation {
+  padding: 14px 20px;
+  cursor: pointer;
+  position: relative;
+}
+
+.conversation.active {
+  background: #f0f0f0;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.preview {
+  font-size: 13px;
+  color: #666;
+}
+
+.badge {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: #e53935;
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 12px;
+}
+
+.chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-messages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.message {
+  max-width: 65%;
+  padding: 10px 14px;
+  border-radius: 14px;
+}
+
+.message.sent {
+  align-self: flex-end;
+  background: #333;
+  color: #fff;
+}
+
+.message.received {
+  align-self: flex-start;
+  background: #fff;
+  border: 1px solid #ddd;
+}
+
+.chat-input {
+  padding: 16px;
+  background: #fff;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  gap: 10px;
+}
+
+.chat-input input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+}
+
+.chat-input button {
+  padding: 12px 20px;
+  background: #333;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+}
+
+.online-dot {
+  display: inline-block;
+  margin-left: 6px;
+  width: 8px;
+  height: 8px;
+  background: #4caf50;
+  border-radius: 50%;
+}
+
+.typing {
+  font-size: 12px;
+  color: #777;
+}
+
+.empty-chat {
+  margin: auto;
+  color: #777;
+}
+
+.message.system {
+  align-self: center;
+  color: #fff;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  opacity: 1;
+  background: #333;
+}
+
+.match-explanation {
+  background: #eef2ff;
+  padding: 10px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid #ddd;
+  color: #333;
+}
