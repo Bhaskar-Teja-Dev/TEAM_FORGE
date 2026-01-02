@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-
+const requireCompleteProfile = require('../middleware/requireCompleteProfile');
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const Interaction = require('../models/Interaction');
@@ -88,41 +88,24 @@ router.get('/messages/:conversationId', auth, async (req, res) => {
  */
 router.get('/matches', auth, async (req, res) => {
     try {
-        // All likes sent by user
-        const sentLikes = await Interaction.find({
-            senderId: req.user,
-            type: 'like',
-        });
+        const conversations = await Conversation.find({
+            participants: req.user,
+        })
+            .populate('participants', 'fullName profileImage')
+            .sort({ lastMessageAt: -1 });
 
-        const sentIds = sentLikes.map(i => i.receiverId.toString());
-
-        // All likes received by user
-        const receivedLikes = await Interaction.find({
-            receiverId: req.user,
-            type: 'like',
-        });
-
-        const receivedIds = receivedLikes.map(i => i.senderId.toString());
-
-        // Mutual likes = matches
-        const matchedIds = sentIds.filter(id =>
-            receivedIds.includes(id)
+        res.json(
+            conversations.map(c => ({
+                conversationId: c.conversationId,
+                participants: c.participants,
+            }))
         );
-
-        if (matchedIds.length === 0) {
-            return res.json([]);
-        }
-
-        const users = await User.find({
-            _id: { $in: matchedIds },
-        }).select('-password');
-
-        res.json(users);
     } catch (err) {
-        console.error(err.message);
+        console.error(err);
         res.status(500).json({ message: 'Server Error' });
     }
 });
+
 
 // GET /api/chat/requests
 router.get('/requests', auth, async (req, res) => {

@@ -5,6 +5,7 @@ const User = require('../models/User');
 const Interaction = require('../models/Interaction');
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
+const requireCompleteProfile = require('../middleware/requireCompleteProfile');
 
 /* =========================
    SAFE NORMALIZER
@@ -81,7 +82,7 @@ const calculateScore = (currentUser, candidate) => {
 /* =========================
    GET CANDIDATES
 ========================= */
-router.get('/candidates', auth, async (req, res) => {
+router.get('/candidates', auth, requireCompleteProfile, async (req, res) => {
     try {
         const currentUser = await User.findById(req.user);
         if (!currentUser) {
@@ -114,7 +115,7 @@ router.get('/candidates', auth, async (req, res) => {
 /* =========================
    SWIPE HANDLER
 ========================= */
-router.post('/swipe', auth, async (req, res) => {
+router.post('/swipe', auth, requireCompleteProfile, async (req, res) => {
     const { targetId, type } = req.body;
 
     try {

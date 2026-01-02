@@ -13,6 +13,10 @@ build/
 .vscode/
 .idea/
 
+*.json
+!package.json
+!package-lock.json
+
 # Logs
 *.log
 

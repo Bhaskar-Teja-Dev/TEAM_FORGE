@@ -32,15 +32,52 @@ router.post('/upload-photo', auth, upload.single('photo'), async (req, res) => {
             { folder: 'teamforge/profiles' }
         );
 
-        await User.findByIdAndUpdate(req.user, {
-            profileImage: result.secure_url,
-        });
-
         res.json({ profileImage: result.secure_url });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Photo upload failed' });
     }
 });
+
+router.put('/me', auth, async (req, res) => {
+    try {
+        const {
+            bio = '',
+            skills = [],
+            interests = [],
+            availability = 'Medium',
+            profileImage,
+        } = req.body;
+
+        const update = {
+            bio,
+            skills,
+            interests,
+            availability,
+        };
+
+        if (profileImage) {
+            update.profileImage = profileImage;
+        }
+
+        // profile completeness rule (EXPLICIT)
+        update.isProfileComplete =
+            bio.trim().length > 0 &&
+            Array.isArray(skills) && skills.length > 0 &&
+            Array.isArray(interests) && interests.length > 0;
+
+        const user = await User.findByIdAndUpdate(
+            req.user,
+            update,
+            { new: true }
+        ).select('-password');
+
+        res.json(user);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Profile update failed' });
+    }
+});
+
 
 module.exports = router;

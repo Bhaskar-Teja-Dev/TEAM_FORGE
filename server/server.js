@@ -1,57 +1,108 @@
 const http = require('http');
-const { Server } = require('socket.io');
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const path = require('path');
+const { Server } = require('socket.io');
+
 const connectDB = require('./config/db');
+
+// Routes
 const authRoutes = require('./routes/auth');
+const teamRoutes = require('./routes/teams');
+const userRoutes = require('./routes/user');
+const teamProjectRoutes = require('./routes/teamProjects');
+const aiRoutes = require('./routes/ai');
+const matchingRoutes = require('./routes/matching');
+const profileRoutes = require('./routes/profile');
+const chatRoutes = require('./routes/chat');
 
-// Load env vars
+// ------------------------------------
+// ENV + DB
+// ------------------------------------
 dotenv.config();
-
-// Connect to database
 connectDB();
 
+// ------------------------------------
+// APP SETUP
+// ------------------------------------
 const app = express();
-const path = require('path');
 
-// Middleware
-app.use(express.json()); // Body parser
-app.use(cors()); // Enable CORS
+// ------------------------------------
+// CORS (CRITICAL FIX)
+// ------------------------------------
+const allowedOrigins = [
+	'http://localhost:5173',
+	'https://collabquest-three.vercel.app',
+];
+
+app.use(
+	cors({
+		origin: function (origin, callback) {
+			// allow REST tools / server-to-server
+			if (!origin) return callback(null, true);
+
+			if (allowedOrigins.includes(origin)) {
+				return callback(null, true);
+			}
+
+			return callback(new Error('Not allowed by CORS'));
+		},
+		credentials: true,
+	})
+);
+
+// ------------------------------------
+// MIDDLEWARE
+// ------------------------------------
+app.use(express.json());
+
+// ------------------------------------
+// API ROUTES
+// ------------------------------------
 app.use('/api/auth', authRoutes);
-app.use('/api/user', require('./routes/user'));
-app.use('/api/ai', require('./routes/ai'));
-app.use('/api/matches', require('./routes/matching'));
-app.use('/api/profile', require('./routes/profile'));
-app.use('/api/chat', require('./routes/chat'));
+app.use('/api/user', userRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api/team-projects', teamProjectRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/matches', matchingRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/chat', chatRoutes);
 
+// ------------------------------------
+// STATIC FILES
+// ------------------------------------
 app.use(
 	'/profiles',
 	express.static(path.join(__dirname, 'Profiles'))
 );
 
-// Basic Route
+// ------------------------------------
+// HEALTH CHECK
+// ------------------------------------
 app.get('/', (req, res) => {
 	res.send('CollabQuest API is running...');
 });
 
-// Routes will be defined here later
-// app.use('/api/auth', require('./routes/auth'));
-
-const PORT = process.env.PORT || 5000;
-
+// ------------------------------------
+// SERVER + SOCKET.IO
+// ------------------------------------
 const server = http.createServer(app);
 
 const io = new Server(server, {
 	cors: {
-		origin: process.env.CLIENT_URL || 'http://localhost:5173',
+		origin: allowedOrigins,
 		methods: ['GET', 'POST'],
+		credentials: true,
 	},
 });
 
 require('./socket/chatSocket')(io);
 
+// ------------------------------------
+// START SERVER
+// ------------------------------------
+const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-	console.log(`Server running on port ${PORT}`);
+	console.log(`🚀 Server running on port ${PORT}`);
 });
-
