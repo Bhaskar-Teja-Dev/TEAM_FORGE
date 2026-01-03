@@ -499,46 +499,40 @@ router.post('/:teamId/invites/:userId/reject', auth, requireTeamAdmin, async (re
 /* =========================
    GET MATCHED USERS FOR TEAM INVITE (ADMIN)
 ========================= */
-router.get(
-    '/:teamId/matched-users',
-    auth,
-    requireCompleteProfile,
-    requireTeamAdmin,
-    async (req, res) => {
-        const team = req.team;
+router.get('/:teamId/matched-users', auth, async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.teamId);
+        if (!team) return res.status(404).json([]);
 
-        const memberIds = team.members.map(id => id.toString());
+        const myId = req.user.toString();
 
-        const likes = await Interaction.find({
-            type: 'like',
-            $or: [
-                { senderId: req.user },
-                { receiverId: req.user },
-            ],
-        });
+        // 1️⃣ All my conversations
+        const conversations = await Conversation.find({
+            participants: myId,
+        }).populate('participants', 'fullName profileImage');
 
-        const counter = new Map();
+        // 2️⃣ Extract matched users
+        let matched = conversations
+            .map(c =>
+                c.participants.find(p => p._id.toString() !== myId)
+            )
+            .filter(Boolean);
 
-        likes.forEach(l => {
-            const other =
-                l.senderId.toString() === req.user.toString()
-                    ? l.receiverId.toString()
-                    : l.senderId.toString();
+        // 3️⃣ Exclude existing members
+        const memberIds = team.members.map(m => m.toString());
+        matched = matched.filter(u => !memberIds.includes(u._id.toString()));
 
-            counter.set(other, (counter.get(other) || 0) + 1);
-        });
+        // 4️⃣ Exclude already invited users
+        const invitedIds = team.invites?.map(i => i.user.toString()) || [];
+        matched = matched.filter(u => !invitedIds.includes(u._id.toString()));
 
-        const matchedIds = [...counter.entries()]
-            .filter(([, c]) => c === 2)
-            .map(([id]) => id)
-            .filter(id => !memberIds.includes(id));
-
-        const users = await User.find({ _id: { $in: matchedIds } })
-            .select('fullName profileImage');
-
-        res.json(users);
+        res.json(matched);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json([]);
     }
-);
+});
+
 
 /* =========================
    GET INVITE COOLDOWN STATUS
