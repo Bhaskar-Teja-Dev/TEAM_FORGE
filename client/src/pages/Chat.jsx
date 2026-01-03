@@ -15,7 +15,8 @@ export default function Chat() {
   const [loading, setLoading] = useState(true);
 
   const { user } = useAuth();
-  const myUserId = user?._id;
+  const myUserId = user?.id || user?._id;
+
 
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
@@ -130,8 +131,12 @@ export default function Chat() {
     scrollBottom();
   };
 
-  const getOtherUser = convo =>
-    convo.participants.find(p => p._id !== myUserId);
+  const getOtherUser = convo => {
+    if (!convo?.participants?.length) return null;
+    return convo.participants.find(
+      p => String(p._id) !== String(myUserId)
+    ) || null;
+  };
 
   /* -------------------------------
      SEND MESSAGE
@@ -187,32 +192,35 @@ export default function Chat() {
         <div className="chat-sidebar">
           <h2>Messages</h2>
 
-          {conversations.map(c => {
-            const other = getOtherUser(c);
-            return (
-              <div
-                key={c.conversationId}
-                className={`conversation ${activeId === c.conversationId ? 'active' : ''
-                  }`}
-                onClick={() => openConversation(c.conversationId)}
-              >
-                <img
-                  className="chat-avatar"
-                  src={getAvatarSrc(other.profileImage)}
-                  alt={other.fullName}
-                />
+          {
+            conversations.map(c => {
+              const other = getOtherUser(c);
+              if (!other) return null;
 
-                <div className="conversation-info">
-                  <div className="name">{other.fullName}</div>
-                  <div className="preview">{c.lastMessage}</div>
+              return (
+                <div key={c.conversationId}
+                  className={`conversation ${activeId === c.conversationId ? 'active' : ''
+                    }`}
+                  onClick={() => openConversation(c.conversationId)}
+                >
+                  <img
+                    className="chat-avatar"
+                    src={getAvatarSrc(other.profileImage)}
+                    alt={other.fullName}
+                  />
+
+                  <div className="conversation-info">
+                    <div className="name">{other.fullName}</div>
+                    <div className="preview">{c.lastMessage}</div>
+                  </div>
+
+                  {c.unreadCount > 0 && (
+                    <span className="badge">{c.unreadCount}</span>
+                  )}
                 </div>
-
-                {c.unreadCount > 0 && (
-                  <span className="badge">{c.unreadCount}</span>
-                )}
-              </div>
-            );
-          })}
+              );
+            })
+          }
         </div>
 
         <div className="chat-main">
