@@ -174,8 +174,8 @@ function Profile() {
             </p>
 
             <div className="profile-info">
-              <h2>{user?.fullName}</h2>
-              <p className="email">{user?.email}</p>
+              <h2>{authUser?.fullName}</h2>
+              <p className="email">{authUser?.email}</p>
             </div>
 
             {message && (
