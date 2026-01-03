@@ -12,12 +12,18 @@ const aiRoutes = require('./routes/ai');
 
 const app = express();
 
-/* ---------- CONNECT DB ON BOOT ---------- */
-connectDB().catch(err => {
-	console.error('Mongo connection failed:', err);
-});
+/* ---------- BLOCKING DB CONNECT ---------- */
+(async () => {
+	try {
+		await connectDB();
+		console.log('MongoDB ready');
+	} catch (err) {
+		console.error('MongoDB failed to connect:', err);
+		process.exit(1); // HARD FAIL (correct for prod)
+	}
+})();
 
-/* ---------- MIDDLEWARE (ORDER MATTERS) ---------- */
+/* ---------- MIDDLEWARE ---------- */
 app.use(express.json());
 
 const allowedOrigins = [
