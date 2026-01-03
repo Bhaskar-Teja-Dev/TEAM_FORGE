@@ -105,16 +105,12 @@ export default function Chat() {
      OPEN FROM MATCHES
   -------------------------------- */
   useEffect(() => {
-    const userId = searchParams.get('userId');
-    if (!userId || conversations.length === 0) return;
+    const conversationId = searchParams.get('conversationId');
+    if (!conversationId) return;
 
-    const convo = conversations.find(c =>
-      c.participants.some(p => p._id === userId)
-    );
-
-    if (convo) openConversation(convo.conversationId);
+    openConversation(conversationId);
     setSearchParams({});
-  }, [conversations]);
+  }, []);
 
   /* -------------------------------
      OPEN CHAT
