@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const connectDB = require('./config/db');
 
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
@@ -21,7 +22,6 @@ const allowedOrigins = [
 
 app.use((req, res, next) => {
     const origin = req.headers.origin;
-
     if (allowedOrigins.includes(origin)) {
         res.setHeader('Access-Control-Allow-Origin', origin);
     }
@@ -40,10 +40,21 @@ app.use((req, res, next) => {
     next();
 });
 
+/* 🔴 GUARANTEE DB BEFORE ROUTES */
+app.use(async (req, res, next) => {
+    try {
+        await connectDB();
+        next();
+    } catch (err) {
+        console.error('DB connection failed:', err);
+        res.status(500).json({ message: 'Database unavailable' });
+    }
+});
+
 /* ROUTES */
 app.use('/api/auth', authRoutes);
-app.use('/api/chat', chatRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/chat', chatRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/team-projects', teamProjectRoutes);
 app.use('/api/matches', matchingRoutes);

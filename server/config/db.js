@@ -1,16 +1,23 @@
 const mongoose = require('mongoose');
 
-let cached = null;
+let cached = global.mongoose;
 
-module.exports = async function connectDB() {
-  if (cached) return cached;
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
 
-  const uri = process.env.MONGO_URI;
-  if (!uri) throw new Error('MONGO_URI missing');
+async function connectDB() {
+  if (cached.conn) return cached.conn;
 
-  cached = await mongoose.connect(uri, {
-    bufferCommands: false,
-  });
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(process.env.MONGO_URI, {
+      bufferCommands: true,
+      serverSelectionTimeoutMS: 5000,
+    }).then(mongoose => mongoose);
+  }
 
-  return cached;
-};
+  cached.conn = await cached.promise;
+  return cached.conn;
+}
+
+module.exports = connectDB;
