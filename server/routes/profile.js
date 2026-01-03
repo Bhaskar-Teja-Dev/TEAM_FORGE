@@ -55,6 +55,8 @@ router.post('/upload-photo', auth, upload.single('photo'), async (req, res) => {
 
 router.put('/me', auth, async (req, res) => {
     try {
+        console.log('REQ.USER:', req.user);
+        console.log('PROFILE IMAGE:', req.body.profileImage);
         const {
             bio = '',
             skills = [],
