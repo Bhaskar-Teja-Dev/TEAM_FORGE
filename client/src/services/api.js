@@ -57,7 +57,7 @@ export const chatAPI = {
   sendMessage: (conversationId, content) =>
     api.post(`/api/chat/messages/${conversationId}`, { content }),
 
-  getMatches: () => api.get('/api/chat/matches'),
+  getMatches: () => api.get('/api/chat/conversations'),
 };
 
 
