@@ -9,7 +9,6 @@ const MAX_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB
 
 function Profile() {
   const { user: authUser, updateUser } = useAuth()
-  const [user, setUser] = useState(authUser)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [pendingPhoto, setPendingPhoto] = useState(null);
@@ -36,13 +35,15 @@ function Profile() {
       setLoading(true)
       const response = await userAPI.getProfile()
       setUser(response.data)
-      setFormData({
+      setFormData(prev => ({
+        ...prev,
         bio: response.data.bio || '',
         skills: response.data.skills || [],
         interests: response.data.interests || [],
         availability: response.data.availability || 'Medium',
-        profileImage: response.data.profileImage || '',
-      });
+        profileImage: prev.profileImage || response.data.profileImage || '',
+      }));
+
 
     } catch (error) {
       console.error('Failed to load profile:', error)
@@ -85,9 +86,8 @@ function Profile() {
       setSaving(true);
       setMessage('');
 
-      const res = await userAPI.updateProfile(formData);
+      await userAPI.updateProfile(formData);
 
-      setUser(res.data);
       await updateUser();
 
       setPhotoPreview(null);
@@ -98,6 +98,7 @@ function Profile() {
       setSaving(false);
     }
   };
+
 
   const addSkill = () => {
     if (newSkill.trim() && !formData.skills.includes(newSkill.trim())) {
@@ -154,15 +155,9 @@ function Profile() {
             <div className="avatar-section">
               <img
                 className="profile-avatar"
-                src={getAvatarSrc(
-                  photoPreview ??
-                  formData.profileImage ??
-                  user?.profileImage ??
-                  null
-                )}
+                src={getAvatarSrc(photoPreview || formData.profileImage || authUser?.profileImage)}
                 alt="Profile"
               />
-
               <label className="avatar-overlay">
                 Change photo
                 <input
