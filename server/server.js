@@ -13,9 +13,6 @@ const aiRoutes = require('./routes/ai');
 
 const app = express();
 
-/* ---------- DB ---------- */
-connectDB();
-
 /* ---------- MIDDLEWARE ---------- */
 app.use(express.json());
 app.use(cors({
@@ -37,4 +34,23 @@ app.get('/api/health', (_, res) => {
 	res.json({ status: 'ok' });
 });
 
-module.exports = app;
+/* ---------- EXPORT WITH DB GUARANTEE ---------- */
+let isConnected = false;
+
+async function init() {
+	if (!isConnected) {
+		await connectDB();
+		isConnected = true;
+		console.log('MongoDB connected');
+	}
+}
+
+module.exports = async (req, res) => {
+	try {
+		await init();
+		return app(req, res);
+	} catch (err) {
+		console.error('DB init failed:', err);
+		res.status(500).json({ message: 'Database not ready' });
+	}
+};
