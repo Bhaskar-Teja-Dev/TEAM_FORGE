@@ -34,7 +34,6 @@ function Profile() {
     try {
       setLoading(true)
       const response = await userAPI.getProfile()
-      setUser(response.data)
       setFormData(prev => ({
         ...prev,
         bio: response.data.bio || '',
