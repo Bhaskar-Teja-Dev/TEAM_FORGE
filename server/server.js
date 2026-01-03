@@ -36,10 +36,35 @@ app.use(async (req, res, next) => {
 
 /* ---------- MIDDLEWARE ---------- */
 app.use(express.json());
-app.use(cors({
-	origin: true,
-	credentials: true,
-}));
+const allowedOrigins = [
+	'https://collab-quest-r6tq97v8j-bhaskar-tejas-projects.vercel.app',
+	'http://localhost:5173'
+];
+
+app.use((req, res, next) => {
+	const origin = req.headers.origin;
+
+	if (allowedOrigins.includes(origin)) {
+		res.header('Access-Control-Allow-Origin', origin);
+	}
+
+	res.header('Access-Control-Allow-Credentials', 'true');
+	res.header(
+		'Access-Control-Allow-Headers',
+		'Origin, X-Requested-With, Content-Type, Accept, x-auth-token'
+	);
+	res.header(
+		'Access-Control-Allow-Methods',
+		'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+	);
+
+	if (req.method === 'OPTIONS') {
+		return res.sendStatus(204);
+	}
+
+	next();
+});
+
 
 /* ---------- ROUTES ---------- */
 app.use('/api/auth', authRoutes);
