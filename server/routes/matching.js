@@ -119,8 +119,10 @@ router.get('/candidates', auth, requireCompleteProfile, async (req, res) => {
 ========================= */
 router.get('/incoming', auth, async (req, res) => {
     try {
+        const me = new mongoose.Types.ObjectId(req.user);
+
         const incoming = await Interaction.find({
-            receiverId: req.user,
+            receiverId: me,
             senderId: { $ne: me },
             type: 'like',
         }).populate('senderId', 'fullName profileImage');
@@ -132,15 +134,18 @@ router.get('/incoming', auth, async (req, res) => {
     }
 });
 
+
 /* =========================
    PENDING REQUESTS
    (You liked them, they haven't responded)
 ========================= */
 router.get('/pending', auth, async (req, res) => {
     try {
+        const me = new mongoose.Types.ObjectId(req.user);
+
         const pending = await Interaction.find({
-            senderId: req.user,
-            receiverId: { $ne:me },
+            senderId: me,
+            receiverId: { $ne: me },
             type: 'like',
         }).populate('receiverId', 'fullName profileImage');
 
@@ -150,6 +155,7 @@ router.get('/pending', auth, async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch pending requests' });
     }
 });
+
 
 
 /* =========================
