@@ -2,9 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { getAvatarSrc } from '../services/avatar';
 import './SwipeCard.css';
 
-
-const [leaving, setLeaving] = useState(false);
-
 const resolveImage = (img) => {
   if (!img) return getAvatarSrc(null);
   if (img.startsWith('http')) return img;
@@ -12,6 +9,7 @@ const resolveImage = (img) => {
 };
 
 function SwipeCard({ candidate, index, onLike, onPass }) {
+  const [leaving, setLeaving] = useState(null);
   const [pos, setPos] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
 
