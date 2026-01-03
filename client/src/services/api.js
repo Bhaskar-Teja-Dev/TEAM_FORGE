@@ -58,6 +58,9 @@ export const chatAPI = {
     api.post(`/api/chat/messages/${conversationId}`, { content }),
 
   getMatches: () => api.get('/api/chat/conversations'),
+  readConversation: (conversationId) =>
+    api.post(`/api/chat/read/${conversationId}`),
+
 };
 
 

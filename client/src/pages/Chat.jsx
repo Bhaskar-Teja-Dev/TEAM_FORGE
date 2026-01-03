@@ -121,15 +121,22 @@ export default function Chat() {
     shouldAutoScrollRef.current = true;
     prevMsgCountRef.current = 0;
 
+    // 1️⃣ Mark messages as read
+    await chatAPI.readConversation(conversationId);
+
+    // 2️⃣ Fetch messages
     const res = await chatAPI.getMessages(conversationId);
     setMessages(prev => ({
       ...prev,
       [conversationId]: res.data.messages,
     }));
 
+    // 3️⃣ Refresh conversations (updates unreadCount)
     await loadConversations();
+
     scrollBottom();
   };
+
 
   const getOtherUser = convo => {
     if (!convo?.participants?.length) return null;
