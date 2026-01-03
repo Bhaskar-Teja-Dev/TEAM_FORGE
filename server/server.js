@@ -12,16 +12,9 @@ const aiRoutes = require('./routes/ai');
 
 const app = express();
 
-/* ---------- BLOCKING DB CONNECT ---------- */
-(async () => {
-	try {
-		await connectDB();
-		console.log('MongoDB ready');
-	} catch (err) {
-		console.error('MongoDB failed to connect:', err);
-		process.exit(1); // HARD FAIL (correct for prod)
-	}
-})();
+/* ---------- HARD BLOCK DB ---------- */
+await connectDB();
+console.log('MongoDB connected');
 
 /* ---------- MIDDLEWARE ---------- */
 app.use(express.json());
@@ -34,23 +27,19 @@ const allowedOrigins = [
 app.use((req, res, next) => {
 	const origin = req.headers.origin;
 	if (allowedOrigins.includes(origin)) {
-		res.header('Access-Control-Allow-Origin', origin);
+		res.setHeader('Access-Control-Allow-Origin', origin);
 	}
-
-	res.header('Access-Control-Allow-Credentials', 'true');
-	res.header(
+	res.setHeader('Access-Control-Allow-Credentials', 'true');
+	res.setHeader(
 		'Access-Control-Allow-Headers',
 		'Origin, X-Requested-With, Content-Type, Accept, x-auth-token'
 	);
-	res.header(
+	res.setHeader(
 		'Access-Control-Allow-Methods',
 		'GET, POST, PUT, PATCH, DELETE, OPTIONS'
 	);
 
-	if (req.method === 'OPTIONS') {
-		return res.sendStatus(204);
-	}
-
+	if (req.method === 'OPTIONS') return res.sendStatus(204);
 	next();
 });
 
@@ -63,7 +52,6 @@ app.use('/api/matches', matchingRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/ai', aiRoutes);
 
-/* ---------- HEALTH ---------- */
 app.get('/api/health', (_, res) => {
 	res.json({ status: 'ok' });
 });
