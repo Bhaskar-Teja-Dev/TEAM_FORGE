@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 
 const authRoutes = require('./routes/auth');
+const userRoutes = require('./routes/user');
 const chatRoutes = require('./routes/chat');
 const teamRoutes = require('./routes/teams');
 const teamProjectRoutes = require('./routes/teamProjects');
@@ -42,6 +43,7 @@ app.use((req, res, next) => {
 /* ROUTES */
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/team-projects', teamProjectRoutes);
 app.use('/api/matches', matchingRoutes);
