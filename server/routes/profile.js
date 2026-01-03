@@ -21,16 +21,26 @@ cloudinary.config({
 /* =========================
    UPLOAD PROFILE PHOTO
 ========================= */
+const streamUpload = (buffer) => {
+    return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream(
+            { folder: 'teamforge/profiles' },
+            (error, result) => {
+                if (result) resolve(result);
+                else reject(error);
+            }
+        );
+        stream.end(buffer);
+    });
+};
+
 router.post('/upload-photo', auth, upload.single('photo'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ message: 'Missing file (photo)' });
         }
 
-        const result = await cloudinary.uploader.upload(
-            `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`,
-            { folder: 'teamforge/profiles' }
-        );
+        const result = await streamUpload(req.file.buffer);
 
         res.json({
             profileImage: result.secure_url,
@@ -41,6 +51,7 @@ router.post('/upload-photo', auth, upload.single('photo'), async (req, res) => {
         res.status(500).json({ message: 'Photo upload failed' });
     }
 });
+
 
 router.put('/me', auth, async (req, res) => {
     try {

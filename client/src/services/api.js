@@ -81,7 +81,10 @@ export const profileAPI = {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
   },
+
+  updateProfile: (data) => api.put('/api/profile/me', data),
 };
+
 
 
 
