@@ -1,44 +1,31 @@
-import { useEffect, useState } from 'react';
-import { teamAPI } from '../services/api';
+import { useMemo } from 'react';
 import { getAvatarSrc } from '../services/avatar';
+import { teamAPI } from '../services/api';
 import './InviteModal.css';
 
-export default function InviteModal({ team, onClose }) {
-    const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+export default function InviteModal({ team, matches = [], onClose }) {
+    if (!team) return null;
 
-    useEffect(() => {
-        load();
-    }, []);
+    const teamMemberIds = new Set(
+        (team.members || []).map(m => String(m._id))
+    );
 
-    const load = async () => {
-        try {
-            const res = await teamAPI.getMatchedUsers(team._id);
-            setUsers(res.data || []);
-        } catch (err) {
-            console.error('Failed to load matched users');
-        } finally {
-            setLoading(false);
-        }
-    };
+    // ✅ Extract matched users from conversations
+    const eligibleUsers = useMemo(() => {
+        return matches
+            .map(c =>
+                c.participants?.find(p => String(p._id) !== String(team.admin))
+            )
+            .filter(Boolean)
+            .filter(u => !teamMemberIds.has(String(u._id)));
+    }, [matches, team]);
 
     const invite = async (userId) => {
         try {
-            setError(null);
             await teamAPI.inviteUser(team._id, userId);
-            load();
+            alert('Invite sent');
         } catch (err) {
-            if (err.response?.status === 429) {
-                const mins = err.response.data?.remainingMinutes;
-                setError(
-                    mins
-                        ? `You can invite this user again in ${mins} minute(s).`
-                        : 'You must wait before inviting this user again.'
-                );
-            } else {
-                setError('Failed to send invite.');
-            }
+            alert('Failed to send invite');
         }
     };
 
@@ -46,27 +33,17 @@ export default function InviteModal({ team, onClose }) {
         <div className="invite-modal-backdrop">
             <div className="invite-modal">
 
-                {/* HEADER */}
                 <div className="invite-modal-header">
                     <h3>Invite matched users</h3>
-                    <button className="invite-close" onClick={onClose}>
-                        ✕
-                    </button>
+                    <button className="invite-close" onClick={onClose}>✕</button>
                 </div>
 
-                {/* BODY */}
                 <div className="invite-modal-body">
-                    {error && <div className="invite-error">{error}</div>}
-
-                    {loading && <div className="invite-empty">Loading…</div>}
-
-                    {!loading && users.length === 0 && (
-                        <div className="invite-empty">
-                            No eligible users
-                        </div>
+                    {eligibleUsers.length === 0 && (
+                        <div className="invite-empty">No eligible users</div>
                     )}
 
-                    {users.map((u) => (
+                    {eligibleUsers.map(u => (
                         <div key={u._id} className="invite-user">
                             <img
                                 src={getAvatarSrc(u.profileImage)}
@@ -75,9 +52,7 @@ export default function InviteModal({ team, onClose }) {
                             />
 
                             <div className="invite-info">
-                                <div className="invite-name">
-                                    {u.fullName}
-                                </div>
+                                <div className="invite-name">{u.fullName}</div>
                             </div>
 
                             <button
