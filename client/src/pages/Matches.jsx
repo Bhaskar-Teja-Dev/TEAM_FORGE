@@ -7,18 +7,24 @@ import { getAvatarSrc } from '../services/avatar';
 import './Matches.css';
 
 export default function Matches() {
+  console.log('incoming', reqRes.data);
+  console.log('pending', pendRes.data);
+  console.log('matches', matchRes.data);
+
   const navigate = useNavigate();
 
   const [incoming, setIncoming] = useState([]);
   const [pending, setPending] = useState([]);
   const [matches, setMatches] = useState([]);
   const { user } = useAuth();
-  const myId = String(user?._id);
+  const myId = String(user?.id || user?._id);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadAll();
+    const t = setTimeout(loadAll, 300);
+    return () => clearTimeout(t);
   }, []);
+
 
   const loadAll = async () => {
     try {
