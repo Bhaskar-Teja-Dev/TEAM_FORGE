@@ -3,22 +3,30 @@ import { getAvatarSrc } from '../services/avatar';
 import { teamAPI } from '../services/api';
 import './InviteModal.css';
 
-export default function InviteModal({ team, matches = [], onClose }) {
-    if (!team) return null;
+export default function InviteModal({
+    team,
+    matches = [],
+    currentUserId,
+    onClose,
+}) {
+    if (!team || !currentUserId) return null;
 
     const teamMemberIds = new Set(
         (team.members || []).map(m => String(m._id))
     );
 
-    // ✅ Extract matched users from conversations
+    // ✅ Correct: extract the OTHER user from each conversation
     const eligibleUsers = useMemo(() => {
         return matches
-            .map(c =>
-                c.participants?.find(p => String(p._id) !== String(team.admin))
-            )
+            .map(c => {
+                if (!c?.participants) return null;
+                return c.participants.find(
+                    p => String(p._id) !== String(currentUserId)
+                );
+            })
             .filter(Boolean)
             .filter(u => !teamMemberIds.has(String(u._id)));
-    }, [matches, team]);
+    }, [matches, teamMemberIds, currentUserId]);
 
     const invite = async (userId) => {
         try {
