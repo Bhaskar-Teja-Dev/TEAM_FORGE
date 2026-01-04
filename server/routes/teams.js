@@ -374,19 +374,13 @@ router.post('/:teamId/invite', auth, requireCompleteProfile, async (req, res) =>
             return res.status(400).json({ message: 'User already invited' });
         }
 
-        const likeAB = await Interaction.findOne({
-            senderId: req.user,
-            receiverId: userId,
-            type: 'like',
-        });
+        const conversationId = [req.user.toString(), userId.toString()]
+            .sort()
+            .join('_');
 
-        const likeBA = await Interaction.findOne({
-            senderId: userId,
-            receiverId: req.user,
-            type: 'like',
-        });
+        const conversationExists = await Conversation.exists({ conversationId });
 
-        if (!likeAB || !likeBA) {
+        if (!conversationExists) {
             return res.status(403).json({ message: 'User not matched' });
         }
 
