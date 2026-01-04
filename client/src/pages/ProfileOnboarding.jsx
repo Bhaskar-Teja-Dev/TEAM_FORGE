@@ -221,13 +221,13 @@ export default function ProfileOnboarding() {
 
                     {/* AVAILABILITY */}
                     <select
+                        className='DropDownMenu'
                         value={formData.availability}
                         onChange={(e) => {
                             setFormData({ ...formData, availability: e.target.value });
                             setErrors(prev => ({ ...prev, availability: '' }));
                         }}
                     >
-                        <option value="">Select availability</option>
                         <option value="High">High</option>
                         <option value="Medium">Medium</option>
                         <option value="Low">Low</option>

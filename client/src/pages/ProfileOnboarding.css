@@ -81,6 +81,10 @@ select,
     font-size: 15px;
 }
 
+.DropDownMenu{
+    margin-bottom: 20px;
+}
+
 textarea {
     min-height: 110px;
     margin-bottom: 20px;
