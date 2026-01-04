@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { getAvatarSrc } from '../services/avatar';
 import { teamAPI } from '../services/api';
 import './InviteModal.css';
@@ -11,29 +11,37 @@ export default function InviteModal({
 }) {
     if (!team || !currentUserId) return null;
 
+    const adminId =
+        typeof team.admin === 'object'
+            ? team.admin._id
+            : team.admin;
+
+    const isAdmin = String(adminId) === String(currentUserId);
+
     const teamMemberIds = new Set(
         (team.members || []).map(m => String(m._id))
     );
 
-    // ✅ Correct: extract the OTHER user from each conversation
+    const [invitedIds, setInvitedIds] = useState(new Set());
+
     const eligibleUsers = useMemo(() => {
         return matches
-            .map(c => {
-                if (!c?.participants) return null;
-                return c.participants.find(
+            .map(c =>
+                c?.participants?.find(
                     p => String(p._id) !== String(currentUserId)
-                );
-            })
+                )
+            )
             .filter(Boolean)
-            .filter(u => !teamMemberIds.has(String(u._id)));
-    }, [matches, teamMemberIds, currentUserId]);
+            .filter(u => !teamMemberIds.has(String(u._id)))
+            .filter(u => !invitedIds.has(String(u._id)));
+    }, [matches, currentUserId, teamMemberIds, invitedIds]);
 
     const invite = async (userId) => {
         try {
             await teamAPI.inviteUser(team._id, userId);
-            alert('Invite sent');
+            setInvitedIds(prev => new Set([...prev, String(userId)]));
         } catch (err) {
-            alert('Failed to send invite');
+            alert(err.response?.data?.message || 'Failed to send invite');
         }
     };
 
@@ -65,9 +73,10 @@ export default function InviteModal({
 
                             <button
                                 className="invite-btn"
+                                disabled={!isAdmin}
                                 onClick={() => invite(u._id)}
                             >
-                                Invite
+                                {isAdmin ? 'Invite' : 'Admin only'}
                             </button>
                         </div>
                     ))}
