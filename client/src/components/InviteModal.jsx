@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { getAvatarSrc } from '../services/avatar';
 import { teamAPI } from '../services/api';
 import './InviteModal.css';
@@ -18,30 +18,30 @@ export default function InviteModal({
 
     const isAdmin = String(adminId) === String(currentUserId);
 
+
     const teamMemberIds = new Set(
         (team.members || []).map(m => String(m._id))
     );
 
-    const [invitedIds, setInvitedIds] = useState(new Set());
-
+    // ✅ Correct: extract the OTHER user from each conversation
     const eligibleUsers = useMemo(() => {
         return matches
-            .map(c =>
-                c?.participants?.find(
+            .map(c => {
+                if (!c?.participants) return null;
+                return c.participants.find(
                     p => String(p._id) !== String(currentUserId)
-                )
-            )
+                );
+            })
             .filter(Boolean)
-            .filter(u => !teamMemberIds.has(String(u._id)))
-            .filter(u => !invitedIds.has(String(u._id)));
-    }, [matches, currentUserId, teamMemberIds, invitedIds]);
+            .filter(u => !teamMemberIds.has(String(u._id)));
+    }, [matches, teamMemberIds, currentUserId]);
 
     const invite = async (userId) => {
         try {
             await teamAPI.inviteUser(team._id, userId);
-            setInvitedIds(prev => new Set([...prev, String(userId)]));
+            alert('Invite sent');
         } catch (err) {
-            alert(err.response?.data?.message || 'Failed to send invite');
+            alert('Failed to send invite');
         }
     };
 

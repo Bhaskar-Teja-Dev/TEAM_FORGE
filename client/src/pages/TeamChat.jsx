@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import InviteModal from '../components/InviteModal';
-import { teamAPI } from '../services/api';
+import { teamAPI, chatAPI } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import TeamMembersPanel from '../components/TeamMembersPanel';
 import { useAuth } from '../context/AuthContext';
@@ -13,6 +13,7 @@ export default function TeamChat() {
     const { user } = useAuth();
     const [team, setTeam] = useState(null);
     const [showInvite, setShowInvite] = useState(false);
+    const [matches, setMatches] = useState([]);
     const [pendingInvites, setPendingInvites] = useState([]);
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
@@ -41,6 +42,18 @@ export default function TeamChat() {
         loadTeam();
     }, [teamId]);
 
+    useEffect(() => {
+        const loadMatches = async () => {
+            try {
+                const res = await chatAPI.getMatches();
+                setMatches(res.data || []);
+            } catch (err) {
+                console.error('Failed to load matches for invites', err);
+            }
+        };
+
+        loadMatches();
+    }, []);
 
     useEffect(() => {
         const interval = setInterval(async () => {
@@ -276,9 +289,12 @@ export default function TeamChat() {
                 {showInvite && (
                     <InviteModal
                         team={team}
+                        matches={matches}                 
+                        currentUserId={user._id}          
                         onClose={() => setShowInvite(false)}
                     />
                 )}
+
 
             </div>
 
